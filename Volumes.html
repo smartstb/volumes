@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Alertes de volume de cryptomonnaie</title>
+  </head>
+  <body>
+    <h1>Alertes de volume de cryptomonnaie</h1>
+    <div id="alerts"></div>
+    <script>
+      // Mettre l'algorithme ici
+      fetch('https://api.binance.com/api/v3/ticker/24hr')
+        .then(response => response.json())
+        .then(data => {
+          const usdt_pairs = data.filter(pair => pair.symbol.endsWith('USDT'))
+          const btc_pairs = data.filter(pair => pair.symbol.endsWith('BTC'))
+          const all_pairs = [...usdt_pairs, ...btc_pairs]
+    
+          const previous_volumes = {}
+          all_pairs.forEach(pair => {
+            previous_volumes[pair.symbol] = pair.volume
+          })
+    
+          setInterval(() => {
+            all_pairs.forEach(pair => {
+              const previous_volume = previous_volumes[pair.symbol]
+              const current_volume = pair.volume
+              const volume_diff = current_volume - previous_volume
+    
+              if (volume_diff / previous_volume > 0.1) {
+                const alert_message = `${pair.symbol}: Volume a augmenté de ${volume_diff} (${previous_volume} -> ${current_volume})`
+                const alert_element = document.createElement('div')
+                alert_element.textContent = alert_message
+                document.getElementById('alerts').appendChild(alert_element)
+              }
+    
+              previous_volumes[pair.symbol] = current_volume
+            })
+          }, 30000)
+        })
+    </script>
+  </body>
+</html>
